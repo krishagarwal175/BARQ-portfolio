@@ -32,7 +32,7 @@ export function Nav() {
             key={l.href}
             href={l.href}
             data-cursor
-            className="rounded-full px-3.5 py-2 text-sm uppercase tracking-[0.1em] text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
+            className="rounded-full px-3.5 py-2 text-sm text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
           >
             {l.label}
           </a>
@@ -43,12 +43,8 @@ export function Nav() {
         onClick={toggleMuted}
         data-cursor
         aria-label={muted ? "Unmute ambience" : "Mute ambience"}
-        className="flex items-baseline gap-2 rounded-full px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
+        className="flex items-center gap-2 rounded-full px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
       >
-        {/* items-baseline puts this box's bottom edge on the text baseline (a
-            flex item with no text baselines falls back to its bottom margin
-            edge), so the bars stand ON the baseline and grow upward. Centring
-            it instead left them sitting ~1.6px low. */}
         <span className="flex h-3 items-end gap-[2px]">
           {[0, 1, 2].map((i) => (
             <span

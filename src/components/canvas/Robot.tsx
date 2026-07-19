@@ -89,8 +89,18 @@ export function Robot({ onReady }: RobotProps) {
     // Micro pointer acknowledgement — a restrained body yaw (disabled in lab).
     const wantYaw = labActive || still ? 0 : state.pointer.x * 0.08;
     yaw.current = damp(yaw.current, wantYaw, 2.5, dt);
-    // During the teardown, add a slow turntable rotation on top.
-    spin.current += !debug && exploded > 0.35 ? dt * 0.28 * exploded : 0;
+    // During the teardown, add a slow turntable rotation on top — and unwind it
+    // again on the way out. It used to only ever accumulate, so once the reader
+    // had been through The Split the chassis stayed yawed by however long they
+    // lingered there. Every earlier section then showed a rotated machine, and
+    // the opening shot worst of all: the camera returns to its pinned pose
+    // exactly, but the engraved panel underneath it had turned, so the mark came
+    // back tilted by an arbitrary amount. Winding back to zero is what makes
+    // returning to the top identical to booting there.
+    spin.current =
+      !debug && exploded > 0.35
+        ? spin.current + dt * 0.28 * exploded
+        : damp(spin.current, 0, still ? 4 : 1.6, dt);
     // Pose-driven body pitch/roll gives stances real chassis attitude.
     outer.current.rotation.set(
       driver.current.currentBodyPitch - bank.current * 0.11,
