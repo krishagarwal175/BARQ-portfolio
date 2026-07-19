@@ -17,12 +17,15 @@
   --color-text-dim: #8d8d96;
   --color-text-faint: #55555c;
 
-  --color-cyan: #00f0ff;
-  --color-emerald: #00e784;
-  --color-pink: #ff2b73;
+  /* The accent triad is warm now. Sections still ask for "cyan" / "emerald" /
+     "pink" by name, so remapping the values here re-tints every existing
+     accent usage into the ember palette without touching a component. */
+  --color-cyan: #ffa53d;
+  --color-emerald: #ff8a20;
+  --color-pink: #f0400c;
 
-  --font-display: var(--font-space-grotesk);
-  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-jetbrains);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -41,16 +44,19 @@
 @property --text { syntax: "<color>"; inherits: true; initial-value: #f6f6f6; }
 @property --text-2 { syntax: "<color>"; inherits: true; initial-value: #8d8d96; }
 @property --text-muted { syntax: "<color>"; inherits: true; initial-value: #55555c; }
-@property --accent { syntax: "<color>"; inherits: true; initial-value: #00f0ff; }
-@property --success { syntax: "<color>"; inherits: true; initial-value: #00e784; }
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #ff8a20; }
+@property --success { syntax: "<color>"; inherits: true; initial-value: #ffb020; }
 @property --warning { syntax: "<color>"; inherits: true; initial-value: #ffb020; }
-@property --selection { syntax: "<color>"; inherits: true; initial-value: #00f0ff; }
+@property --selection { syntax: "<color>"; inherits: true; initial-value: #ff8a20; }
 @property --hover { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.06); }
 @property --active { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.10); }
 @property --border { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.08); }
 @property --border-strong { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.16); }
-@property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(0,240,255,0.5); }
+@property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255,138,32,0.5); }
 @property --shadow { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,0.6); }
+@property --field-1 { syntax: "<color>"; inherits: true; initial-value: #ff7a14; }
+@property --field-2 { syntax: "<color>"; inherits: true; initial-value: #d62e07; }
+@property --field-3 { syntax: "<color>"; inherits: true; initial-value: #ff6a12; }
 
 :root {
   transition:
@@ -70,7 +76,10 @@
     --border 0.85s var(--ease-out-expo),
     --border-strong 0.85s var(--ease-out-expo),
     --glow 0.85s var(--ease-out-expo),
-    --shadow 0.85s var(--ease-out-expo);
+    --shadow 0.85s var(--ease-out-expo),
+    --field-1 0.85s var(--ease-out-expo),
+    --field-2 0.85s var(--ease-out-expo),
+    --field-3 0.85s var(--ease-out-expo);
 }
 
 /* Remap the structural Tailwind palette onto the animated semantic tokens, so
@@ -181,6 +190,258 @@ body {
 /* Hairline utility */
 .hairline {
   box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Feature column                                                    */
+/*                                                                    */
+/*  A frosted column pinned to one edge. The inner edge is dissolved   */
+/*  with a mask rather than ended with a border, so the panel bleeds   */
+/*  into the scene — a hard vertical rule down the middle of the frame */
+/*  would cut the composition in two.                                  */
+/* ------------------------------------------------------------------ */
+.feature-col {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bg) 82%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 62%, transparent) 55%,
+    transparent 100%
+  );
+  backdrop-filter: blur(26px) saturate(125%);
+  -webkit-backdrop-filter: blur(26px) saturate(125%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 62%, transparent 100%);
+}
+
+/* Mirrored when the column sits on the right edge. */
+.feature-col--right {
+  background: linear-gradient(
+    270deg,
+    color-mix(in srgb, var(--bg) 82%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 62%, transparent) 55%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(270deg, #000 0%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(270deg, #000 0%, #000 62%, transparent 100%);
+}
+
+@media (max-width: 820px) {
+  .feature-col {
+    width: 100%;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Spec card                                                         */
+/* ------------------------------------------------------------------ */
+.spec-card {
+  --mx: 50%;
+  --my: 0%;
+  transition:
+    transform 0.4s var(--ease-out-expo),
+    border-color 0.4s var(--ease-out-expo);
+}
+.spec-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+}
+
+/* Spotlight follows the pointer. Sits under the content, above the fill. */
+.spec-card__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out-expo);
+  background: radial-gradient(
+    260px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    transparent 68%
+  );
+}
+.spec-card:hover .spec-card__glow {
+  opacity: 1;
+}
+
+/* Corner registration marks — drafting plate, not a bordered box. */
+.spec-card__mark {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+  opacity: 0.5;
+  transition:
+    opacity 0.4s var(--ease-out-expo),
+    width 0.4s var(--ease-out-expo),
+    height 0.4s var(--ease-out-expo);
+}
+.spec-card__mark--tl {
+  top: 10px;
+  left: 10px;
+  border-top: 1px solid var(--border-strong);
+  border-left: 1px solid var(--border-strong);
+}
+.spec-card__mark--br {
+  right: 10px;
+  bottom: 10px;
+  border-right: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+}
+.spec-card:hover .spec-card__mark {
+  width: 17px;
+  height: 17px;
+  opacity: 1;
+}
+
+/* Visually hidden, still announced. Carries the semantics for content that is
+   painted into the WebGL canvas and therefore invisible to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Ambient field                                                     */
+/*                                                                    */
+/*  Painted behind the transparent WebGL canvas. The base gradient is  */
+/*  the ember ground; the blobs drift over it on long, offset cycles   */
+/*  so the backdrop is never quite the same twice — which is what      */
+/*  keeps the glass from reading as a flat translucent rectangle.      */
+/* ------------------------------------------------------------------ */
+.field {
+  overflow: hidden;
+  background:
+    radial-gradient(110% 84% at 76% 6%, #ff8a20 0%, #f0400c 26%, #a82004 50%, transparent 76%),
+    radial-gradient(86% 66% at 16% 96%, #c82806 0%, #5a1002 44%, transparent 74%),
+    linear-gradient(158deg, #2a0a04 0%, #3a0e04 40%, #160604 100%);
+}
+
+.field__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: field-drift 26s var(--ease-out-expo) infinite alternate;
+}
+.field__blob--1 {
+  width: 56vw;
+  height: 56vw;
+  top: -18%;
+  right: -12%;
+  background: var(--field-1);
+  opacity: 0.5;
+  animation-duration: 30s;
+}
+.field__blob--2 {
+  width: 46vw;
+  height: 46vw;
+  bottom: -16%;
+  left: -8%;
+  background: var(--field-2);
+  opacity: 0.6;
+  animation-duration: 36s;
+  animation-delay: -8s;
+}
+.field__blob--3 {
+  width: 34vw;
+  height: 34vw;
+  top: 36%;
+  left: 46%;
+  background: var(--field-3);
+  opacity: 0.4;
+  animation-duration: 24s;
+  animation-delay: -14s;
+}
+
+@keyframes field-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4vw, -3vw, 0) scale(1.14);
+  }
+}
+
+/* Vignette + top/bottom falloff, so the type always has a ground. */
+.field__haze {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(6, 2, 1, 0.28) 0%,
+      transparent 22%,
+      rgba(6, 2, 1, 0.3) 82%,
+      rgba(6, 2, 1, 0.58) 100%
+    ),
+    radial-gradient(130% 110% at 50% 46%, transparent 42%, rgba(6, 2, 1, 0.46) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field__blob {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Glass                                                             */
+/*                                                                    */
+/*  The floating DOM panels sit directly over the persistent WebGL     */
+/*  canvas, so backdrop-filter has the live robot to refract — that    */
+/*  is the whole point of the treatment here.                          */
+/*                                                                    */
+/*  The fill is mixed from --surface rather than hard-coded, so the    */
+/*  panel follows the active environment automatically: smoked dark    */
+/*  glass in the studio envs, light frosted glass in Research Lab,     */
+/*  with no per-environment CSS. It inherits the 0.85s token           */
+/*  transition on :root, so the glass cross-fades with everything      */
+/*  else when the environment changes.                                 */
+/* ------------------------------------------------------------------ */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(40px) saturate(140%) brightness(0.94);
+  -webkit-backdrop-filter: blur(40px) saturate(140%) brightness(0.94);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    0 24px 60px -24px var(--shadow);
+}
+
+/* Raised state for cards that respond to the pointer. */
+.glass-hover {
+  transition:
+    transform 0.4s var(--ease-out-expo),
+    background 0.4s var(--ease-out-expo),
+    border-color 0.4s var(--ease-out-expo);
+}
+.glass-hover:hover {
+  transform: translateY(-5px);
+  background: var(--surface-el);
+  border-color: var(--border-strong);
+}
+
+.glass-sm {
+  border-radius: 16px;
+}
+.glass-pill {
+  border-radius: 999px;
+}
+
+/* Safari and older engines without backdrop-filter fall back to a more
+   opaque fill, otherwise the text loses its ground and becomes unreadable. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+  }
 }
 
 @keyframes grain {

@@ -23,6 +23,9 @@ const VARS: Record<string, string> = {
   borderStrong: "--border-strong",
   glow: "--glow",
   shadow: "--shadow",
+  field1: "--field-1",
+  field2: "--field-2",
+  field3: "--field-3",
 };
 
 /**

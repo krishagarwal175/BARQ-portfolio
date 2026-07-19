@@ -39,9 +39,22 @@ interface AppState {
   /* Scroll-driven narrative (0..1 across the whole page) */
   scroll: number;
   setScroll: (s: number) => void;
+  /**
+   * Signed scroll velocity, normalised to roughly -1..1. The robot banks into
+   * it, so flicking the page makes the machine react rather than sit inert.
+   */
+  scrollVel: number;
+  setScrollVel: (v: number) => void;
   /** Index of the active narrative section for the camera rig. */
   section: number;
   setSection: (i: number) => void;
+  /**
+   * Which way the robot should get out of the way of the active section's
+   * copy. +1 pushes it to the right of frame (copy is on the left), -1 to the
+   * left, 0 leaves it centred. The camera rig pans to satisfy this.
+   */
+  dodge: number;
+  setDodge: (d: number) => void;
 
   /* Exploded teardown */
   exploded: number; // 0..1 spring target
@@ -58,6 +71,13 @@ interface AppState {
   setGaitSpeed: (v: number) => void;
   env: EnvId;
   setEnv: (e: EnvId) => void;
+
+  /**
+   * Thermal-camera amount, 0..1. Driven by the thermal section as it scrolls
+   * into view; the postprocessing pass cross-fades against the normal render.
+   */
+  thermal: number;
+  setThermal: (v: number) => void;
 
   /* Audio */
   muted: boolean;
@@ -80,8 +100,12 @@ export const useApp = create<AppState>((set) => ({
 
   scroll: 0,
   setScroll: (s) => set({ scroll: s }),
+  scrollVel: 0,
+  setScrollVel: (v) => set({ scrollVel: v }),
   section: 0,
   setSection: (i) => set({ section: i }),
+  dodge: 0,
+  setDodge: (d) => set({ dodge: d }),
 
   exploded: 0,
   setExploded: (v) => set({ exploded: v }),
@@ -96,6 +120,9 @@ export const useApp = create<AppState>((set) => ({
   setGaitSpeed: (v) => set({ gaitSpeed: v }),
   env: "studio",
   setEnv: (e) => set({ env: e }),
+
+  thermal: 0,
+  setThermal: (v) => set({ thermal: v }),
 
   muted: true,
   toggleMuted: () => set((s) => ({ muted: !s.muted })),

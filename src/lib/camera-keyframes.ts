@@ -21,18 +21,22 @@ export interface CamFrame {
 
 /** One frame per narrative section index (see useSection). */
 export const CAM_FRAMES: CamFrame[] = [
+  // Margins are tight on purpose — the robot is the subject and should fill
+  // the frame. 1.0 exactly circumscribes the bounding sphere, so anything
+  // near 1.0 is close framing; the teardown keeps more room because exploding
+  // grows that sphere considerably.
   // 0 · Hero — wide, dramatic front three-quarter, slightly low
-  { azimuth: 0.62, elevation: 0.12, fov: 34, margin: 1.5, targetOffset: [0, 0.0, 0] },
+  { azimuth: 0.62, elevation: 0.12, fov: 34, margin: 1.14, targetOffset: [0, 0.0, 0] },
   // 1 · Kinematics — near profile
-  { azimuth: 1.32, elevation: 0.08, fov: 32, margin: 1.32, targetOffset: [0, 0.0, 0] },
+  { azimuth: 1.32, elevation: 0.08, fov: 32, margin: 1.02, targetOffset: [0, 0.0, 0] },
   // 2 · Actuation — three-quarter close-up on the hip
-  { azimuth: 0.5, elevation: 0.22, fov: 30, margin: 1.02, targetOffset: [0.04, 0.02, 0] },
+  { azimuth: 0.5, elevation: 0.22, fov: 30, margin: 0.9, targetOffset: [0.04, 0.02, 0] },
   // 3 · Chassis — elevated, looking down the spine
-  { azimuth: 0.24, elevation: 0.62, fov: 32, margin: 1.15, targetOffset: [0, 0.01, 0] },
+  { azimuth: 0.24, elevation: 0.62, fov: 32, margin: 0.96, targetOffset: [0, 0.01, 0] },
   // 4 · Exploded teardown — centred, subtly wider FOV, close framing
-  { azimuth: 0.4, elevation: 0.16, fov: 40, margin: 1.12, targetOffset: [0, 0.02, 0] },
-  // 5 · Wide orbit — opposite three-quarter
-  { azimuth: -0.7, elevation: 0.2, fov: 36, margin: 1.5, targetOffset: [0, 0.0, 0] },
+  { azimuth: 0.4, elevation: 0.16, fov: 40, margin: 1.04, targetOffset: [0, 0.02, 0] },
+  // 5 · Thermal — profile, close, so the hot body fills the sensor
+  { azimuth: -0.7, elevation: 0.2, fov: 36, margin: 1.0, targetOffset: [0, 0.0, 0] },
 ];
 
 /** Direction (target → camera) for an orbit angle pair. */

@@ -31,7 +31,7 @@ export function Software() {
   return (
     <section
       id="software"
-      className="relative z-10 w-full bg-bg px-6 py-28 md:px-12"
+      className="relative z-10 w-full px-6 py-28 md:px-12"
     >
       <SectionHeading
         index="10"
@@ -46,7 +46,7 @@ export function Software() {
         <div className="grid" style={{ gridTemplateRows: "repeat(4, 1fr)" }}>
           {STACK_LAYERS.map((l) => (
             <div key={l} className="flex items-center">
-              <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-text-faint">
+              <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-text-2">
                 {l}
               </span>
             </div>
@@ -77,8 +77,8 @@ export function Software() {
             ))}
             <defs>
               <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.7" />
-                <stop offset="100%" stopColor="#ff2b73" stopOpacity="0.5" />
+                <stop offset="0%" stopColor="#ffa53d" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#f0400c" stopOpacity="0.5" />
               </linearGradient>
             </defs>
           </svg>
@@ -97,7 +97,7 @@ export function Software() {
               >
                 <div
                   className={cn(
-                    "flex items-center gap-2 rounded-lg border bg-bg-secondary px-3 py-2 backdrop-blur transition-colors hover:border-line-strong",
+                    "glass flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:border-line-strong",
                     n.planned ? "border-dashed border-line-strong" : "border-line",
                   )}
                 >

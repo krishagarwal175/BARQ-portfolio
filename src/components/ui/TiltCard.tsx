@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function TiltCard({
   children,
   className,
-  glow = "#00f0ff",
+  glow = "#ff8a20",
   max = 8,
 }: {
   children: React.ReactNode;
@@ -49,7 +49,7 @@ export function TiltCard({
       onPointerLeave={reset}
       style={{ rotateX, rotateY, transformPerspective: 800 }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-line bg-bg-secondary p-6 [transform-style:preserve-3d]",
+        "glass glass-sm group relative overflow-hidden p-6 [transform-style:preserve-3d]",
         className,
       )}
     >

@@ -11,7 +11,7 @@ import { CAPABILITIES_NOW, ROADMAP } from "@/lib/content";
  */
 export function Capabilities() {
   return (
-    <section id="capabilities" className="relative z-10 w-full bg-bg px-6 py-28 md:px-12">
+    <section id="capabilities" className="relative z-10 w-full px-6 py-28 md:px-12">
       <SectionHeading
         index="11"
         eyebrow="Capabilities & Roadmap"
@@ -27,7 +27,7 @@ export function Capabilities() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-10% 0px" }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="rounded-2xl border border-[var(--accent)]/30 bg-bg-secondary p-6"
+          className="glass glass-sm border-[var(--accent)]/40 p-6"
         >
           <div className="mb-5 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--glow)]" />
@@ -59,7 +59,7 @@ export function Capabilities() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-10% 0px" }}
           transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-          className="rounded-2xl border border-dashed border-line-strong bg-bg-secondary/60 p-6"
+          className="glass glass-sm border-dashed border-line-strong p-6"
         >
           <div className="mb-5 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full border border-line-strong" />

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  */
 export function Pipeline() {
   return (
-    <section id="pipeline" className="relative z-10 w-full bg-bg-secondary px-6 py-28 md:px-12">
+    <section id="pipeline" className="relative z-10 w-full px-6 py-28 md:px-12">
       <SectionHeading
         index="07"
         eyebrow="Engineering Pipeline"

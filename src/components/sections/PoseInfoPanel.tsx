@@ -23,7 +23,7 @@ export function PoseInfoPanel() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none fixed left-6 top-24 z-40 hidden w-72 rounded-2xl border border-line bg-[var(--overlay)] p-5 shadow-[0_20px_60px_var(--shadow)] backdrop-blur-xl md:left-12 md:block"
+          className="glass pointer-events-none fixed left-6 top-24 z-40 hidden w-72 p-5 md:left-12 md:block"
         >
           <div className="flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--accent)]">

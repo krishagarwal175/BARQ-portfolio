@@ -3,7 +3,6 @@
 import { useEffect, useMemo } from "react";
 import { useThree } from "@react-three/fiber";
 import {
-  Color,
   FogExp2,
   Material,
   Mesh,
@@ -11,6 +10,9 @@ import {
 } from "three";
 import { ENV_MAP } from "@/lib/environments";
 import { useApp } from "@/lib/store";
+
+/** Deep ember — matches the base of the ambient field gradient. */
+const FOG_TINT = "#160604";
 
 /**
  * Applies the active environment to the scene: background, fog and the robot's
@@ -25,11 +27,14 @@ export function EnvController() {
   const wireMat = useMemo(() => new MeshBasicMaterial({ color: "#9aa3b2", wireframe: true }), []);
   const blueMat = useMemo(() => new MeshBasicMaterial({ color: "#37c6e6", wireframe: true }), []);
 
-  // Scene background + fog.
+  // Fog only — the background stays null so the ambient field behind the
+  // transparent canvas shows through. Fog is tinted to the ember ground
+  // rather than the environment's own background colour, otherwise the floor
+  // fades to a cold grey that fights the field it is sitting on.
   useEffect(() => {
     const def = ENV_MAP[env];
-    scene.background = new Color(def.bg);
-    scene.fog = def.fog > 0 ? new FogExp2(def.bg, def.fog) : null;
+    scene.background = null;
+    scene.fog = def.fog > 0 ? new FogExp2(FOG_TINT, def.fog) : null;
   }, [env, scene]);
 
   // Robot material mode.

@@ -10,9 +10,9 @@ import { Grain } from "@/components/ui/Grain";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { Boot } from "@/components/sections/Boot";
 import { Hero } from "@/components/sections/Hero";
-import { StorySection } from "@/components/sections/StorySection";
+import { FeatureSection } from "@/components/sections/FeatureSection";
+import { Thermal } from "@/components/sections/Thermal";
 import { Exploded } from "@/components/sections/Exploded";
-import { Blueprint } from "@/components/sections/Blueprint";
 import { Lab } from "@/components/sections/Lab";
 import { Pipeline } from "@/components/sections/Pipeline";
 import { Highlights } from "@/components/sections/Highlights";
@@ -20,6 +20,7 @@ import { Hardware } from "@/components/sections/Hardware";
 import { Software } from "@/components/sections/Software";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { Footer } from "@/components/layout/Footer";
+import { Marquee } from "@/components/ui/Marquee";
 
 // The WebGL scene is client-only; never render it on the server.
 const Scene = dynamic(() => import("@/components/canvas/Scene").then((m) => m.Scene), {
@@ -33,6 +34,9 @@ const Scene = dynamic(() => import("@/components/canvas/Scene").then((m) => m.Sc
 export function Experience() {
   return (
     <SmoothScroll>
+      {/* The canvas now carries the ambient field, the BARQ wordmark and the
+          robot as one composited frame — back to front inside Scene, so the
+          robot occludes the type. The DOM above it is interface only. */}
       <div id="top" className="fixed inset-0 z-0">
         <Scene />
       </div>
@@ -48,60 +52,83 @@ export function Experience() {
       <main className="relative z-10">
         <Hero />
 
-        <StorySection
+        <FeatureSection
           index={1}
-          eyebrow="Kinematics"
-          accent="cyan"
-          title={<>Twelve degrees of freedom.</>}
-          body="Four legs, each a three-joint serial chain — hip (coxa), upper leg (femur) and lower leg (tibia). The whole mechanical hierarchy lives in a single URDF that the browser assembles in real time, joint limits and all — the same file that drives simulation."
-          stats={[
-            { label: "Legs", value: "4" },
-            { label: "Joints / leg", value: "3" },
-            { label: "Total DOF", value: "12" },
-            { label: "CAD", value: "Fusion 360" },
-          ]}
-        />
-
-        <StorySection
-          index={2}
-          eyebrow="Actuation"
-          accent="emerald"
-          align="right"
-          title={
-            <>
-              Twelve joints,
-              <br />
-              one control path.
-            </>
+          eyebrow="Twelve degrees of freedom"
+          body="Four legs, each a three-joint serial chain — hip, upper leg and lower leg. The whole mechanical hierarchy lives in a single URDF the browser assembles in real time, joint limits and all: the same file that drives simulation."
+          statement={"One file,\nevery joint"}
+          icon={
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+              <circle cx="6" cy="6" r="2" strokeWidth="1.5" />
+              <circle cx="18" cy="12" r="2" strokeWidth="1.5" />
+              <circle cx="8" cy="19" r="2" strokeWidth="1.5" />
+              <path d="M7.7 7.4 16.3 11M16.5 13.6 9.6 17.7" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           }
-          body="Each joint is a DS3240MG high-torque digital servo, driven over PWM through a PCA9685 controller. A calibration pipeline and joint-level software abstraction mean every servo is commanded the same way — pose and gait targets, not raw pulses."
-          stats={[
-            { label: "Servos", value: "12 × DS3240MG" },
-            { label: "Driver", value: "PCA9685" },
-            { label: "Signal", value: "PWM" },
-            { label: "Hip range", value: "±45°" },
-          ]}
+          note={{
+            caption: "Forward kinematics · three angles per foot",
+            formula: <span className="italic">p = f(θ₁,θ₂,θ₃)</span>,
+          }}
         />
 
-        <StorySection
+        <FeatureSection
+          index={2}
+          side="right"
+          eyebrow="Twelve joints, one control path"
+          body="Each joint is a DS3240MG high-torque digital servo driven over PWM through a PCA9685. A calibration pipeline and joint-level abstraction mean every servo is commanded the same way — pose and gait targets, never raw pulses."
+          statement={"Commanded,\nnot pulsed"}
+          icon={
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+              <path d="M3 12h3l2-5 3 10 3-8 2 3h5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          }
+          note={{
+            caption: "12-bit PWM · 4096 steps per channel",
+            formula: <span className="italic">θ = k·(t − t₀)</span>,
+          }}
+        />
+
+        <FeatureSection
           index={3}
-          eyebrow="Structure"
-          accent="pink"
-          title={<>Designed to be iterated.</>}
-          body="Every structural component was modelled in Fusion 360 and optimised for 3D printing, modularity and ease of maintenance. The central body carries the compute, IMU and power distribution — a platform built to be taken apart and improved."
-          stats={[
-            { label: "Structure", value: "3D-printed" },
-            { label: "CAD", value: "Fusion 360" },
-            { label: "Legs", value: "Modular" },
-            { label: "Source", value: "URDF" },
+          eyebrow="Designed to be iterated"
+          body="Every structural component was modelled in Fusion 360 and optimised for printing, modularity and maintenance. The central body carries compute, IMU and power distribution — a platform built to be taken apart and improved."
+          statement={"Built to\ncome apart"}
+          icon={
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+              <path d="M12 3 20 7.5v9L12 21 4 16.5v-9L12 3Z" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="M12 12v9M12 12 4 7.5M12 12l8-4.5" strokeWidth="1.5" strokeLinejoin="round" />
+            </svg>
+          }
+        />
+
+        <Marquee
+          items={[
+            "12 DOF",
+            "4 legs · 3 joints",
+            "DS3240MG",
+            "PCA9685 · 12-bit PWM",
+            "Jetson Orin Nano",
+            "URDF single source",
           ]}
         />
 
         <Exploded />
-        <Blueprint />
+        <Thermal />
         <Lab />
         <Pipeline />
         <Highlights />
+
+        <Marquee
+          items={[
+            "HW-290 IMU",
+            "4S LiPo · 6400 mAh",
+            "YDLIDAR G2",
+            "Fusion 360",
+            "ROS 2",
+            "Built end to end",
+          ]}
+        />
+
         <Hardware />
         <Software />
         <Capabilities />

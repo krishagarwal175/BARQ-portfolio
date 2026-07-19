@@ -1,18 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Manrope carries both display and body, per the glass direction. Self-hosted
+// by next/font at build time — no CDN request at runtime.
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -25,7 +21,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://barq.krishagarwal.dev"),
   title: {
-    default: "BARQ — Quadruped Robotics · Krish Agarwal",
+    default: "BARQ — Quadruped Robotics",
     template: "%s · BARQ",
   },
   description:
@@ -34,11 +30,12 @@ export const metadata: Metadata = {
     "quadruped robot",
     "robotics",
     "URDF",
-    "Krish Agarwal",
+    "Aryaman",
+    "Krish",
     "legged locomotion",
     "BARQ",
   ],
-  authors: [{ name: "Krish Agarwal" }],
+  authors: [{ name: "Aryaman" }, { name: "Krish" }],
   openGraph: {
     title: "BARQ — Quadruped Robotics",
     description: "An interactive teardown of a custom quadruped robot.",
@@ -59,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrains.variable}`}
+      className={`${manrope.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
       <body>{children}</body>

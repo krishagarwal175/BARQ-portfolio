@@ -32,6 +32,8 @@ export function Robot({ onReady }: RobotProps) {
   const driver = useRef<RobotDriver | null>(null);
   const yaw = useRef(0);
   const spin = useRef(0);
+  /** Eased scroll velocity — drives the body's lean and lift. */
+  const bank = useRef(0);
 
   useEffect(() => {
     setProgress(progress);
@@ -63,10 +65,15 @@ export function Robot({ onReady }: RobotProps) {
   useFrame((state, delta) => {
     if (!driver.current || !outer.current) return;
     const dt = Math.min(delta, 0.05);
-    const { motion, gaitSpeed, labActive, exploded, env } = useApp.getState();
+    const { motion, gaitSpeed, labActive, exploded, env, scrollVel } = useApp.getState();
     const elapsed = performance.now() / 1000;
     driver.current.update(dt, motion, gaitSpeed, elapsed, env);
-    outer.current.position.y = driver.current.currentBodyY;
+
+    // Bank into the scroll. A machine with mass should resist being flung down
+    // the page — it pitches against the direction of travel and squats a
+    // little, then settles. Disabled in the lab, where the user is driving.
+    bank.current = damp(bank.current, labActive ? 0 : scrollVel, 4, dt);
+    outer.current.position.y = driver.current.currentBodyY - Math.abs(bank.current) * 0.012;
 
     // Micro pointer acknowledgement — a restrained body yaw (disabled in lab).
     const wantYaw = labActive ? 0 : state.pointer.x * 0.08;
@@ -75,9 +82,9 @@ export function Robot({ onReady }: RobotProps) {
     spin.current += exploded > 0.35 ? dt * 0.28 * exploded : 0;
     // Pose-driven body pitch/roll gives stances real chassis attitude.
     outer.current.rotation.set(
-      driver.current.currentBodyPitch,
+      driver.current.currentBodyPitch - bank.current * 0.11,
       yaw.current + spin.current,
-      driver.current.currentBodyRoll,
+      driver.current.currentBodyRoll + bank.current * 0.05,
     );
   });
 

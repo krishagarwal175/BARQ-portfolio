@@ -73,4 +73,12 @@ Or manually:
 
 Every push to `main` triggers an automatic production redeploy.
 
-Author: **Krish Agarwal**
+## Credits
+
+Ambient audio — "Drone Dark and Moody Atmospheric Ambient Background" by
+**fronbondi_skegs**, free / no copyright. Stored at
+`public/audio/barq-ambient.mp3`, re-encoded to 112 kbps stereo (942 KB) and
+fetched lazily on first unmute so it never competes with the URDF and mesh
+load.
+
+Authors: **Aryaman & Krish**

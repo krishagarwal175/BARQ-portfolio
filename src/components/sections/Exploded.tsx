@@ -20,6 +20,7 @@ export function Exploded() {
   const setExploded = useApp((s) => s.setExploded);
   const hovered = useApp((s) => s.hoveredPart);
   const setHovered = useApp((s) => s.setHoveredPart);
+  const labActive = useApp((s) => s.labActive);
 
   const { scrollYProgress } = useScroll({
     target: trackRef,
@@ -35,10 +36,20 @@ export function Exploded() {
   useEffect(() => () => setExploded(0), [setExploded]);
 
   return (
-    <section id="teardown" ref={secRef}>
+    /* Snaps to the top of the pinned track — the start of the explode,
+       which is the only meaningful resting point on a scrubbed section. */
+    <section id="teardown" ref={secRef} data-snap>
       <div ref={trackRef} className="relative h-[280svh] w-full">
-        {/* Pinned viewport */}
-        <div className="sticky top-0 flex h-[100svh] w-full items-center overflow-hidden">
+        {/* Pinned viewport. The track runs 280svh, so the tail of this sticky
+            panel is still on screen when the Lab's IntersectionObserver fires
+            and mounts the pose readout in the same top-left corner. Clearing
+            it on labActive is what stops the two card stacks overlapping. */}
+        <div
+          className={cn(
+            "sticky top-0 flex h-[100svh] w-full items-center overflow-hidden transition-opacity duration-500",
+            labActive && "pointer-events-none opacity-0",
+          )}
+        >
           <div className="pointer-events-none w-full px-6 md:px-12">
             <SectionHeading
               index="04"
@@ -105,7 +116,7 @@ function SpecCard() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 24 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none fixed inset-x-3 bottom-3 z-30 rounded-2xl border border-line bg-[var(--overlay)] p-5 shadow-[0_20px_60px_var(--shadow)] backdrop-blur-xl md:absolute md:inset-x-auto md:bottom-auto md:right-12 md:top-1/2 md:w-72 md:-translate-y-1/2 md:p-6"
+          className="glass pointer-events-none fixed inset-x-3 bottom-3 z-30 p-5 md:absolute md:inset-x-auto md:bottom-auto md:right-12 md:top-1/2 md:w-72 md:-translate-y-1/2 md:p-6"
         >
           <p
             className={cn(

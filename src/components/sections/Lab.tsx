@@ -62,8 +62,11 @@ export function Lab() {
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => setLabActive(e.isIntersecting),
-      { threshold: 0.3 },
+      // 0.6, not 0.3: at the looser threshold the pose readout and the
+      // ground pad faded up while the previous section still filled the
+      // screen, so the panel appeared to float in over the thermal chapter.
+      ([e]) => setLabActive(e.isIntersecting && e.intersectionRatio >= 0.6),
+      { threshold: [0, 0.6, 1] },
     );
     io.observe(el);
     return () => {
@@ -88,47 +91,34 @@ export function Lab() {
           : "Balance";
 
   return (
+    /* Isolated: exactly one screen, so the lab is a single self-contained
+       beat the reader is pulled into and held at, rather than a 135svh track
+       they drift through. A fixed-height section is also the only shape that
+       can snap cleanly — a taller one has no single correct resting point. */
     <section
       ref={ref}
       id="lab"
-      className="pointer-events-none relative min-h-[135svh] w-full"
+      data-snap
+      className="pointer-events-none relative flex h-[100svh] w-full flex-col justify-between"
     >
       <PoseInfoPanel />
 
-      {/* Heading rides in at the top of the lab. */}
-      <div className="pointer-events-none px-6 pt-24 md:px-12">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ margin: "-20% 0px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="font-mono text-xs uppercase tracking-[0.4em] text-emerald"
-        >
-          06 · Robot Lab
-        </motion.p>
-        <motion.h2
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ margin: "-20% 0px" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-          className="mt-4 max-w-xl font-display text-4xl font-medium leading-[0.95] tracking-tight md:text-6xl"
-        >
-          Take the controls.
-        </motion.h2>
-        <p className="mt-4 max-w-sm text-sm text-text-dim">
-          Drag to orbit, pinch or scroll to zoom, then drive the robot live —
-          poses, gaits and demos across seven environments.
-        </p>
-      </div>
+      {/* No heading: the console and the live readout say what this is, and
+          a title here collided with the pose panel and the section wordmark. */}
+      <div />
 
-      {/* Compact, collapsible control console pinned to the bottom. */}
-      <div className="pointer-events-none sticky bottom-4 mt-[62svh] flex justify-center px-3 md:bottom-6 md:px-4">
+      {/* Console sits at the foot of the screen. No sticky offset needed now
+          that the section is exactly one viewport tall. */}
+      <div className="pointer-events-none flex justify-center px-3 pb-5 md:px-4 md:pb-7">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ margin: "-8% 0px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-line bg-[var(--overlay)] shadow-[0_20px_60px_var(--shadow)] backdrop-blur-xl"
+          /* The console recedes while idle so the robot stays the subject, and
+             comes fully forward the moment the pointer arrives. Focus-within
+             keeps it visible for keyboard users, who never trigger hover. */
+          className="glass pointer-events-auto w-full max-w-2xl overflow-hidden opacity-60 transition-opacity duration-500 hover:opacity-100 focus-within:opacity-100"
         >
           {/* Header: tabs + live status + collapse */}
           <div className="flex items-center gap-2 px-3 py-2.5 md:px-4">

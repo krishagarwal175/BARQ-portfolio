@@ -6,7 +6,7 @@ const YEAR = 2026;
 
 export function Footer() {
   return (
-    <footer className="relative z-10 w-full border-t border-line bg-bg px-6 py-20 md:px-12">
+    <footer className="relative z-10 w-full border-t border-line px-6 py-20 md:px-12">
       <div className="mx-auto flex max-w-6xl flex-col gap-16">
         <motion.h2
           initial={{ opacity: 0, y: 24 }}
@@ -23,7 +23,7 @@ export function Footer() {
         <div className="flex flex-col justify-between gap-8 border-t border-line pt-8 md:flex-row md:items-end">
           <div>
             <p className="font-display text-lg font-semibold tracking-tight text-text">
-              Krish Agarwal
+              Aryaman &amp; Krish
             </p>
             <p className="mt-1 max-w-xs text-sm text-text-dim">
               A custom quadruped — mechanical design, electronics, kinematics,

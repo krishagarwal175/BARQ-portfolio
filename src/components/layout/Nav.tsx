@@ -13,32 +13,37 @@ export function Nav() {
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: booted ? 1 : 0, y: booted ? 0 : -12 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5 md:px-12"
+      className="glass glass-pill fixed inset-x-3 top-3 z-50 mx-auto flex w-[min(1120px,calc(100%-1.5rem))] items-center justify-between py-2 pl-5 pr-3 md:top-4"
     >
       <a href="#top" data-cursor className="flex items-center gap-2">
-        <span className="font-display text-lg font-semibold tracking-tight text-text">
+        <span className="font-display text-base font-bold tracking-tight text-text">
           BARQ
         </span>
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--glow)]" />
       </a>
 
-      <nav className="hidden gap-8 font-mono text-[11px] uppercase tracking-[0.2em] text-text-dim md:flex">
-        <a href="#teardown" data-cursor className="transition-colors hover:text-text">
-          Teardown
-        </a>
-        <a href="#lab" data-cursor className="transition-colors hover:text-text">
-          Lab
-        </a>
-        <a href="#hardware" data-cursor className="transition-colors hover:text-text">
-          Hardware
-        </a>
+      <nav className="hidden gap-1 md:flex">
+        {[
+          { href: "#teardown", label: "Teardown" },
+          { href: "#lab", label: "Lab" },
+          { href: "#hardware", label: "Hardware" },
+        ].map((l) => (
+          <a
+            key={l.href}
+            href={l.href}
+            data-cursor
+            className="rounded-full px-3.5 py-2 text-sm text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
+          >
+            {l.label}
+          </a>
+        ))}
       </nav>
 
       <button
         onClick={toggleMuted}
         data-cursor
         aria-label={muted ? "Unmute ambience" : "Mute ambience"}
-        className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-text-dim transition-colors hover:text-text"
+        className="flex items-center gap-2 rounded-full px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-text-dim transition-colors hover:bg-[var(--hover)] hover:text-text"
       >
         <span className="flex h-3 items-end gap-[2px]">
           {[0, 1, 2].map((i) => (

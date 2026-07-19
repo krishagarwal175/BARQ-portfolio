@@ -12,7 +12,9 @@ import { Ground } from "./Ground";
 import { Lighting } from "./Lighting";
 import { Particles } from "./Particles";
 import { Robot } from "./Robot";
+import { ShaderField } from "./ShaderField";
 import { Teardown3D } from "./Teardown3D";
+import { Wordmark } from "./Wordmark";
 import { useApp } from "@/lib/store";
 
 function LabControls() {
@@ -68,16 +70,25 @@ export function Scene() {
       dpr={[1, 2]}
       camera={{ position: [0.62, 0.34, 0.72], fov: 38, near: 0.01, far: 100 }}
       gl={{
+        alpha: true,
         antialias: false,
         powerPreference: "high-performance",
         toneMapping: ACESFilmicToneMapping,
         toneMappingExposure: 1.05,
       }}
       onCreated={({ gl }) => {
-        gl.setClearColor("#050505", 1);
+        // Transparent clear: the ambient ember field is a DOM layer painted
+        // behind this canvas, so the robot stands *in* the field rather than
+        // in front of an opaque fill. EnvController leaves scene.background
+        // null to match.
+        gl.setClearColor("#000000", 0);
       }}
     >
       <Suspense fallback={null}>
+        {/* Back to front: ambient ground, then the wordmark, then the robot
+            — so the robot occludes the type in a single composited frame. */}
+        <ShaderField />
+        <Wordmark />
         <Lighting />
         <EnvController />
         <Robot />

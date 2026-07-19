@@ -17,7 +17,7 @@ export function Hardware() {
   return (
     <section
       id="hardware"
-      className="relative z-10 min-h-screen w-full bg-bg px-6 py-28 md:px-12"
+      className="relative z-10 min-h-screen w-full px-6 py-28 md:px-12"
     >
       <SectionHeading
         index="09"
