@@ -19,6 +19,14 @@ export interface CamFrame {
   targetOffset: [number, number, number];
 }
 
+/**
+ * Where the opening shot is aimed, relative to the bottom-centre of the
+ * base_link bounds. Shared because the reveal lighting has to sit against the
+ * same plane the camera is pointed at — the bounds include the legs, so the
+ * raw bottom is the feet, not the underside panel.
+ */
+export const REVEAL_SHIFT: [number, number, number] = [0.04843, 0.17994, 0.00014];
+
 /** One frame per narrative section index (see useSection). */
 export const CAM_FRAMES: CamFrame[] = [
   // Margins are tight on purpose — the robot is the subject and should fill

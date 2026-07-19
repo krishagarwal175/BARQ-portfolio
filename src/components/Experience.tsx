@@ -8,6 +8,7 @@ import { ThemeController } from "@/components/layout/ThemeController";
 import { GlassBudget } from "@/components/layout/GlassBudget";
 import { OrbitDrag } from "@/components/layout/OrbitDrag";
 import { OrbitHint } from "@/components/ui/OrbitHint";
+import { DebugGate } from "@/components/layout/DebugGate";
 import { Cursor } from "@/components/ui/Cursor";
 import { Grain } from "@/components/ui/Grain";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
@@ -49,6 +50,7 @@ export function Experience() {
       <GlassBudget />
       <OrbitDrag />
       <OrbitHint />
+      <DebugGate />
       <Grain />
       <Cursor />
       <ScrollProgress />

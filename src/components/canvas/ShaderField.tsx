@@ -194,7 +194,7 @@ export function ShaderField() {
     if (!u) return;
     const dt = Math.min(delta, 0.05);
 
-    u.uTime.value += dt;
+    if (!useApp.getState().debug) u.uTime.value += dt;
     u.uRes.value.set(size.width, size.height);
 
     // Ease toward the active environment's field colours, matching the 0.85s

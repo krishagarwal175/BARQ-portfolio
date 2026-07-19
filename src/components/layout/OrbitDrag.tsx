@@ -60,6 +60,8 @@ export function OrbitDrag() {
     };
 
     const onPointerDown = (e: PointerEvent) => {
+      // Debug mode owns the camera outright.
+      if (useApp.getState().debug) return;
       if (!armed || e.button !== 0) return;
       dragging = true;
       lastX = e.clientX;

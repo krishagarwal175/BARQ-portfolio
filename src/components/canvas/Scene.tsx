@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { AdaptiveDpr, OrbitControls, Preload } from "@react-three/drei";
 import { ACESFilmicToneMapping } from "three";
 import type { ComponentRef } from "react";
 import { CameraRig } from "./CameraRig";
+import { DebugControls } from "./DebugControls";
 import { Effects } from "./Effects";
 import { EnvController } from "./EnvController";
 import { Ground } from "./Ground";
@@ -13,9 +14,15 @@ import { Lighting } from "./Lighting";
 import { Particles } from "./Particles";
 import { Robot } from "./Robot";
 import { ShaderField } from "./ShaderField";
-import { Teardown3D } from "./Teardown3D";
 import { Wordmark } from "./Wordmark";
+import { Teardown3D } from "./Teardown3D";
 import { useApp } from "@/lib/store";
+
+/** Swaps the scripted rig for the free camera without re-rendering <Canvas>. */
+function RigOrDebug() {
+  const debug = useApp((s) => s.debug);
+  return debug ? <DebugControls /> : <CameraRig />;
+}
 
 function LabControls() {
   const labActive = useApp((s) => s.labActive);
@@ -63,6 +70,30 @@ function LabControls() {
  * The single persistent WebGL scene shared across the whole experience.
  * Fixed behind the DOM content; sections drive it through the store.
  */
+/**
+ * Stops the render loop once the reference sections cover the viewport.
+ *
+ * Driven imperatively from inside the canvas rather than through a `frameloop`
+ * prop on <Canvas>. Changing that prop re-renders the Canvas element itself,
+ * which tears through R3F's root while the scene graph is live and threw
+ * "JSON.stringify cannot serialize cyclic structures" — the overlay choking on
+ * a Three object graph mid-teardown. setFrameloop does the same job without
+ * touching the React tree.
+ */
+function FrameloopGate() {
+  const setFrameloop = useThree((s) => s.setFrameloop);
+  const invalidate = useThree((s) => s.invalidate);
+  const sceneVisible = useApp((s) => s.sceneVisible);
+
+  useEffect(() => {
+    setFrameloop(sceneVisible ? "always" : "never");
+    // One last frame so the canvas does not freeze mid-transition.
+    if (sceneVisible) invalidate();
+  }, [sceneVisible, setFrameloop, invalidate]);
+
+  return null;
+}
+
 export function Scene() {
   return (
     <Canvas
@@ -84,8 +115,9 @@ export function Scene() {
         gl.setClearColor("#000000", 0);
       }}
     >
+      <FrameloopGate />
       <Suspense fallback={null}>
-        {/* Back to front: ambient ground, then the wordmark, then the robot
+        {/* Back to front: ambient ground, chapter wordmarks, then the robot
             — so the robot occludes the type in a single composited frame. */}
         <ShaderField />
         <Wordmark />
@@ -95,7 +127,7 @@ export function Scene() {
         <Teardown3D />
         <Ground />
         <Particles />
-        <CameraRig />
+        <RigOrDebug />
         <LabControls />
         <Effects />
         <Preload all />

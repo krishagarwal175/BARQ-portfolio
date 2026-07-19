@@ -44,8 +44,9 @@ const WORDS: Record<
   number,
   { word: string; style: Style; fill: number; offset: [number, number] }
 > = {
-  // Hero: dead centre is right, the robot stands inside its own name.
-  0: { word: "BARQ", style: "solid", fill: 0.84, offset: [0, 0] },
+  // No hero entry. Section 0 opens on the BARQ engraved into the chassis
+  // itself, so a rendered wordmark over it would be the same word twice — and
+  // at that camera distance it buried the mark it was duplicating.
   // Panel left → word pushed right.
   1: { word: "KINEMATICS", style: "outline", fill: 0.6, offset: [0.16, -0.05] },
   // Panel right → word pushed left.
@@ -65,7 +66,7 @@ function paint(word: string, style: Style, fill: number): HTMLCanvasElement {
   const cx = TEX_W / 2;
   const cy = TEX_H / 2;
 
-  // ---- guides, hero only: dashed frame, dotted circle, registration ticks --
+  // ---- guides, retained for any future solid-style word -------------------
   if (style === "solid") {
     const guide = Math.min(TEX_W, TEX_H) * 0.42;
     ctx.strokeStyle = "rgba(255,255,255,0.30)";

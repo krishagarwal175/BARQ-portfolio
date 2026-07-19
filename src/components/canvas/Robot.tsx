@@ -65,21 +65,32 @@ export function Robot({ onReady }: RobotProps) {
   useFrame((state, delta) => {
     if (!driver.current || !outer.current) return;
     const dt = Math.min(delta, 0.05);
-    const { motion, gaitSpeed, labActive, exploded, env, scrollVel } = useApp.getState();
-    const elapsed = performance.now() / 1000;
+    const { motion, gaitSpeed, labActive, exploded, env, scrollVel, debug } =
+      useApp.getState();
+    // Debug freezes every idle motion. Breathing, weight shift and servo
+    // jitter are all driven off elapsed time, so pinning it holds the machine
+    // dead still — while dt keeps flowing, so a pose change still settles
+    // rather than locking half-way. Readings taken against a moving robot are
+    // not reproducible.
+    // Also frozen through the opening shot: the camera is inches from the
+    // panel there, so breathing and servo jitter read as the whole plate
+    // wobbling rather than as a machine idling.
+    const { reveal } = useApp.getState();
+    const still = debug || reveal < 0.999;
+    const elapsed = still ? 0 : performance.now() / 1000;
     driver.current.update(dt, motion, gaitSpeed, elapsed, env);
 
     // Bank into the scroll. A machine with mass should resist being flung down
     // the page — it pitches against the direction of travel and squats a
     // little, then settles. Disabled in the lab, where the user is driving.
-    bank.current = damp(bank.current, labActive ? 0 : scrollVel, 4, dt);
+    bank.current = damp(bank.current, labActive || still ? 0 : scrollVel, 4, dt);
     outer.current.position.y = driver.current.currentBodyY - Math.abs(bank.current) * 0.012;
 
     // Micro pointer acknowledgement — a restrained body yaw (disabled in lab).
-    const wantYaw = labActive ? 0 : state.pointer.x * 0.08;
+    const wantYaw = labActive || still ? 0 : state.pointer.x * 0.08;
     yaw.current = damp(yaw.current, wantYaw, 2.5, dt);
     // During the teardown, add a slow turntable rotation on top.
-    spin.current += exploded > 0.35 ? dt * 0.28 * exploded : 0;
+    spin.current += !debug && exploded > 0.35 ? dt * 0.28 * exploded : 0;
     // Pose-driven body pitch/roll gives stances real chassis attitude.
     outer.current.rotation.set(
       driver.current.currentBodyPitch - bank.current * 0.11,

@@ -79,6 +79,14 @@ interface AppState {
   thermal: number;
   setThermal: (v: number) => void;
 
+  /** Opening-reveal progress, 0 buried in the engraving → 1 full stance. */
+  reveal: number;
+  setReveal: (v: number) => void;
+
+  /** Free-camera debug mode, opted into with ?debug on the URL. */
+  debug: boolean;
+  setDebug: (v: boolean) => void;
+
   /** Manual orbit offset, in radians, from hold-and-drag. */
   orbitAz: number;
   orbitEl: number;
@@ -135,6 +143,12 @@ export const useApp = create<AppState>((set) => ({
   setGaitSpeed: (v) => set({ gaitSpeed: v }),
   env: "studio",
   setEnv: (e) => set({ env: e }),
+
+  reveal: 1,
+  setReveal: (v) => set({ reveal: v }),
+
+  debug: false,
+  setDebug: (v) => set({ debug: v }),
 
   orbitAz: 0,
   orbitEl: 0,

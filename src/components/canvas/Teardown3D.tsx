@@ -148,7 +148,7 @@ export function Teardown3D() {
 
     // A slow pulse, so the body reads as a live thermal source rather than a
     // static glow — the sensor image never sits perfectly still.
-    pulse.current += dt;
+    if (!useApp.getState().debug) pulse.current += dt;
     const breathe = 0.9 + Math.sin(pulse.current * 1.6) * 0.1;
 
     const part = PARTS.find((p) => p.id === hoveredPart);

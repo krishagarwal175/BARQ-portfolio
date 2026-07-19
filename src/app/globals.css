@@ -354,6 +354,33 @@ html[data-orbit="dragging"] * {
   opacity: 1;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Debug mode (?debug)                                               */
+/*                                                                    */
+/*  The canvas normally sits under the interface at z-0, so it never   */
+/*  receives a drag. For free-camera work that has to invert: the      */
+/*  canvas comes to the front and takes the pointer, the interface     */
+/*  stops intercepting, and the real cursor comes back so the orbit    */
+/*  and zoom affordances are legible.                                  */
+/* ------------------------------------------------------------------ */
+html[data-debug] #top {
+  z-index: 50;
+  pointer-events: auto;
+}
+html[data-debug] main,
+html[data-debug] header,
+html[data-debug] footer {
+  pointer-events: none;
+}
+html[data-debug],
+html[data-debug] body {
+  cursor: auto;
+}
+/* The readout itself stays clickable. */
+html[data-debug] .debug-panel {
+  pointer-events: auto;
+}
+
 /* Visually hidden, still announced. Carries the semantics for content that is
    painted into the WebGL canvas and therefore invisible to assistive tech. */
 .sr-only {

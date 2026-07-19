@@ -127,7 +127,7 @@ export function Ground() {
     g.visible = fade.current > 0.01;
     if (!g.visible) return;
 
-    u.uTime.value += dt;
+    if (!useApp.getState().debug) u.uTime.value += dt;
     u.uFade.value = fade.current;
   });
 

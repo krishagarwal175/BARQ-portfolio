@@ -65,6 +65,14 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       snap.addElement(el, { align: ["start"] });
     });
 
+    // In debug the wheel belongs to the camera, not the page — Lenis would
+    // otherwise consume it and zoom would do nothing.
+    const unsubscribeDebug = useApp.subscribe((state) => {
+      if (state.debug) lenis.stop();
+      else lenis.start();
+    });
+    if (useApp.getState().debug) lenis.stop();
+
     let raf = 0;
     const loop = (time: number) => {
       lenis.raf(time);
@@ -74,6 +82,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelAnimationFrame(raf);
+      unsubscribeDebug();
       snap.destroy();
       lenis.destroy();
     };

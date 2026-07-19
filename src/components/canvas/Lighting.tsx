@@ -3,7 +3,9 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
-import { Group, Material, Mesh } from "three";
+import { Box3, Group, Material, Mesh, PointLight, Vector3 } from "three";
+import { REVEAL_SHIFT } from "@/lib/camera-keyframes";
+import { lightRig } from "@/lib/debug";
 import { ENV_MAP } from "@/lib/environments";
 import { useApp } from "@/lib/store";
 import { damp } from "@/lib/utils";
@@ -24,6 +26,86 @@ import { damp } from "@/lib/utils";
  * for most of the page, that lit edge is the only thing separating the
  * silhouette from the background.
  */
+
+/**
+ * Lights the underside during the opening reveal.
+ *
+ * Every lamp in the main rig is above the robot, which is correct for a
+ * machine standing in a room and useless for a shot taken from beneath it —
+ * the engraved panel sat in full shadow. Two lamps fix it: a soft fill so the
+ * plate is legible at all, and a grazing light raking across it at a shallow
+ * angle so the cut letters throw their own micro-shadows and read as relief
+ * rather than as a flat texture. Both fade out as the camera pulls back, so
+ * they never touch the normal lighting.
+ */
+function RevealLight() {
+  const fill = useRef<PointLight>(null);
+  const graze = useRef<PointLight>(null);
+  const rake = useRef<PointLight>(null);
+  const box = useRef(new Box3());
+  const mark = useRef(new Vector3());
+
+  useFrame(() => {
+    const f = fill.current;
+    const g = graze.current;
+    const r = rake.current;
+    if (!f || !g || !r) return;
+
+    const { reveal, robot, debug } = useApp.getState();
+    // Held at full while debugging. The camera rig owns `reveal`, and it stands
+    // down in debug mode — so the value sat at its initial 1, `amount` computed
+    // to 0, and these lamps were switched off before a single slider value was
+    // read. Nothing responded because nothing was lit.
+    const amount = debug ? 1 : 1 - Math.min(1, Math.max(0, reveal));
+    // Every value comes from the live rig, so the debug sliders drive the real
+    // lamps and the defaults in that object are exactly what ships.
+    const { fill: LF, key: LK, opposite: LO } = lightRig;
+
+    f.intensity = amount * LF.intensity;
+    g.intensity = amount * LK.intensity;
+    r.intensity = amount * LO.intensity;
+    f.visible = amount > 0.01;
+    g.visible = f.visible;
+    r.visible = f.visible;
+    if (!f.visible) return;
+
+    const base = robot?.links?.["base_link"];
+    if (!base) return;
+    box.current.setFromObject(base);
+    if (box.current.isEmpty()) return;
+    box.current.getCenter(mark.current);
+    mark.current.y = box.current.min.y;
+    // Same shift the camera uses. Without it these lamps sat under the feet —
+    // a quarter of a metre below the panel they were meant to rake — which is
+    // why cranking the intensity alone never lit anything.
+    mark.current.x += REVEAL_SHIFT[0];
+    mark.current.y += REVEAL_SHIFT[1];
+    mark.current.z += REVEAL_SHIFT[2];
+
+    f.position.set(mark.current.x + LF.x, mark.current.y + LF.y, mark.current.z + LF.z);
+    // The key rakes: held almost level with the plate so the beam travels
+    // nearly parallel to it. Light arriving square on returns a flat grey
+    // panel; light skimming across strikes the wall of every cut and throws a
+    // shadow off every edge, and that shadow is what reads as depth.
+    g.position.set(mark.current.x + LK.x, mark.current.y + LK.y, mark.current.z + LK.z);
+    r.position.set(mark.current.x + LO.x, mark.current.y + LO.y, mark.current.z + LO.z);
+
+    f.color.set(LF.color);
+    g.color.set(LK.color);
+    r.color.set(LO.color);
+    f.distance = LF.distance;
+    g.distance = LK.distance;
+    r.distance = LO.distance;
+  });
+
+  return (
+    <>
+      <pointLight ref={fill} color="#ffd9b0" distance={0.9} decay={2} visible={false} />
+      <pointLight ref={graze} color="#ffcb96" distance={1.6} decay={2} visible={false} />
+      <pointLight ref={rake} color="#ff8f45" distance={0.9} decay={2} visible={false} />
+    </>
+  );
+}
 
 /** Deep ember rather than black — a black shadow on a warm floor reads dirty. */
 const SHADOW_COLOR = "#1a0602";
@@ -152,6 +234,7 @@ export function Lighting() {
         />
       </Environment>
 
+      <RevealLight />
       <GroundShadow />
     </>
   );

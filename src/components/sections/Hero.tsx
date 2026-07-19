@@ -14,10 +14,11 @@ const reveal = {
 };
 
 /**
- * The opening screen. The headline itself is not here — it is the BARQ
- * wordmark rendered behind the canvas by {@link HeroWordmark}, so the robot
- * can float in front of it. What remains is the framing: corner labels, the
- * standfirst, and the scroll cue.
+ * The opening screen. There is no rendered headline: the page opens on the
+ * BARQ engraved into the chassis itself, which the camera reveals. What lives
+ * here is the framing — corner labels, the standfirst, and the scroll cue —
+ * plus the accessible <h1>, since the mark is geometry and invisible to
+ * assistive tech.
  */
 export function Hero() {
   const ref = useSection<HTMLElement>(0);

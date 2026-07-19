@@ -3,6 +3,7 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, Points, ShaderMaterial } from "three";
+import { useApp } from "@/lib/store";
 
 /**
  * Faint volumetric dust that drifts around the robot — atmosphere, not noise.
@@ -93,9 +94,10 @@ export function Particles({ count = 420 }: { count?: number }) {
   );
 
   useFrame((state, delta) => {
-    if (ref.current) ref.current.rotation.y = state.clock.elapsedTime * 0.015;
+    const frozen = useApp.getState().debug;
+    if (ref.current && !frozen) ref.current.rotation.y = state.clock.elapsedTime * 0.015;
     const u = mat.current?.uniforms;
-    if (!u) return;
+    if (!u || frozen) return;
     u.uTime.value += Math.min(delta, 0.05);
     u.uScale.value = state.size.height * 0.5;
   });
