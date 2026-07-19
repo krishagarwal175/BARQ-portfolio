@@ -51,12 +51,13 @@ function RevealLight() {
     const r = rake.current;
     if (!f || !g || !r) return;
 
-    const { reveal, robot, debug } = useApp.getState();
-    // Held at full while debugging. The camera rig owns `reveal`, and it stands
-    // down in debug mode — so the value sat at its initial 1, `amount` computed
-    // to 0, and these lamps were switched off before a single slider value was
-    // read. Nothing responded because nothing was lit.
-    const amount = debug ? 1 : 1 - Math.min(1, Math.max(0, reveal));
+    const { robot } = useApp.getState();
+    // Always on, no longer keyed to the reveal. These started as a fix for one
+    // shot — the underside is unlit by the main rig, so the engraving needed
+    // its own lamps — but they hold up at full stance too: they sit under the
+    // chassis on a short throw, so pulled back they read as a warm underglow
+    // travelling with the machine rather than as a second key.
+    const amount = 1;
     // Every value comes from the live rig, so the debug sliders drive the real
     // lamps and the defaults in that object are exactly what ships.
     const { fill: LF, key: LK, opposite: LO } = lightRig;

@@ -40,7 +40,6 @@ const REVEAL_FILL = 6.29806;
 const REVEAL_FOV = 38;
 /** Nudge along the panel once you can see where the mark actually sits. */
 
-
 /**
  * Cinematic framing rig. Rather than driving fixed coordinates, it frames the
  * robot's live bounding sphere: each section picks an orbit angle and FOV, and
@@ -73,6 +72,9 @@ export function CameraRig() {
    * timed, so the reveal is something the reader performs instead of watches.
    */
   const revealBox = useRef(new Box3());
+  /** Set once the opening pose has been solved; it is never re-solved. */
+  const revealPinned = useRef(false);
+  const revealSettle = useRef(0);
   const markPos = useRef(new Vector3());
   const revealDir = useRef(new Vector3());
   const revealPos = useRef(new Vector3());
@@ -80,14 +82,22 @@ export function CameraRig() {
   const reveal = useRef(0);
   const revealFov = useRef<number | null>(null);
 
+  /** True while the lab or debug rig owns the camera, so the return can reseed. */
+  const parked = useRef(false);
+  const resume = useRef(new Vector3());
+
   const posSpring = useRef<SpringVec3 | null>(null);
   const tgtSpring = useRef<SpringVec3 | null>(null);
   const fovSpring = useRef<SpringScalar | null>(null);
 
   useFrame((state, delta) => {
     const app = useApp.getState();
-    if (app.labActive || app.debug) return;
-    const { section, robotGroup, dodge, scrollVel, orbitAz, orbitEl } = useApp.getState();
+    if (app.labActive || app.debug) {
+      parked.current = true;
+      return;
+    }
+    const { section, robotGroup, dodge, scrollVel, orbitAz, orbitEl } =
+      useApp.getState();
     if (!robotGroup) return;
 
     const dt = Math.min(delta, 0.05);
@@ -116,7 +126,11 @@ export function CameraRig() {
     // Manual orbit is added to the keyframe rather than replacing it, so the
     // scripted framing still drives the shot and the drag is an offset from it.
     const az =
-      frame.azimuth + orbit.current + orbitAz + pointer.x * 0.16 + Math.sin(t * 0.3) * 0.02;
+      frame.azimuth +
+      orbit.current +
+      orbitAz +
+      pointer.x * 0.16 +
+      Math.sin(t * 0.3) * 0.02;
     const el = clamp(
       frame.elevation + orbitEl + pointer.y * 0.1 + Math.cos(t * 0.24) * 0.015,
       0.02,
@@ -146,11 +160,70 @@ export function CameraRig() {
 
     desired.current.copy(target.current).addScaledVector(dir.current, dist);
 
+    // Pinned at boot regardless of where the reader starts. Solving it lazily
+    // inside the reveal ramp meant a page loaded already scrolled down never
+    // pinned until the reader came back up — by which point the pose it
+    // measured was whatever the lab had left behind.
+    const base = useApp.getState().robot?.links?.["base_link"];
+    if (base && !revealPinned.current) {
+      // Solved ONCE, then pinned as a fixed world pose.
+      //
+      // This used to be recomputed every frame from the live bounds of
+      // base_link, which quietly made the opening shot a function of whatever
+      // the robot happened to be doing. The lab changes stance; the body
+      // banks, yaws and lifts as you scroll. All of it moved the box, and the
+      // box sets both where the shot aims and how far back it sits — so
+      // scrolling back to the top returned to a *recomputed* framing rather
+      // than to the shot that was composed. That is the tilt and the offset.
+      //
+      // The robot is held still through the reveal anyway, so there is
+      // nothing for a live measurement to track. Pinning it means boot and
+      // return produce an identical camera pose by construction.
+      revealSettle.current += dt;
+      // Measured after the driver has settled into its rest stance; the URDF
+      // zero pose on frame one is not what the numbers were dialled against.
+      if (revealSettle.current > 0.5) {
+        revealBox.current.setFromObject(base);
+        if (!revealBox.current.isEmpty()) {
+          // The engraving is baked into the chassis mesh rather than being
+          // its own node, so it is located geometrically: the bottom face of
+          // the base link's bounds.
+          // Note this is the bounds of the whole base_link subtree — in a
+          // URDF the legs hang off the chassis, so min.y is the feet, not the
+          // underside. That is deliberate: the debug readout measured against
+          // this same definition, so the values below land exactly where they
+          // were found. Changing the anchor would invalidate them.
+          revealBox.current.getCenter(markPos.current);
+          markPos.current.y = revealBox.current.min.y;
+          markPos.current.x += REVEAL_SHIFT[0];
+          markPos.current.y += REVEAL_SHIFT[1];
+          markPos.current.z += REVEAL_SHIFT[2];
+
+          // Distance solved from the panel's own footprint, so the shot
+          // frames the underside whatever size the chassis is.
+          revealBox.current.getSize(revealSize.current);
+          const halfPanel =
+            (Math.max(revealSize.current.x, revealSize.current.z) * 0.5) /
+            REVEAL_FILL;
+          const revealDist = halfPanel / Math.tan((REVEAL_FOV * DEG2RAD) / 2);
+
+          // Almost directly beneath the panel, looking up into it.
+          orbitDir(REVEAL_AZIMUTH, REVEAL_ELEVATION, revealDir.current);
+          revealPos.current
+            .copy(markPos.current)
+            .addScaledVector(revealDir.current, revealDist);
+          revealPinned.current = true;
+        }
+      }
+    }
+
     // ---- opening reveal --------------------------------------------------
     // Only the hero. Progress is the first screen of scroll, eased, so the
     // pull-back tracks the reader's own movement.
     const scrolled =
-      typeof window === "undefined" ? 1 : window.scrollY / Math.max(1, window.innerHeight * 0.85);
+      typeof window === "undefined"
+        ? 1
+        : window.scrollY / Math.max(1, window.innerHeight * 0.85);
     const wantReveal = section === 0 ? Math.min(1, Math.max(0, scrolled)) : 1;
     // Damped so a flick of the wheel does not snap the camera out of the mark.
     reveal.current = damp(reveal.current, wantReveal, 6, dt);
@@ -162,46 +235,13 @@ export function CameraRig() {
 
     revealFov.current = null;
     if (reveal.current < 0.999) {
-      const base = useApp.getState().robot?.links?.["base_link"];
-      if (base) {
-        revealBox.current.setFromObject(base);
-        if (!revealBox.current.isEmpty()) {
-          // The engraving is baked into the chassis mesh rather than being its
-          // own node, so it is located geometrically: the bottom face of the
-          // base link's bounds. Derived live, it stays locked to the body as
-          // the robot breathes and shifts.
-          // Note this is the bounds of the whole base_link subtree — in a URDF
-          // the legs hang off the chassis, so min.y is the feet, not the
-          // underside. That is fine and deliberate: the debug readout measured
-          // against this same definition, so the values below land exactly
-          // where they were found. Changing the anchor would invalidate them.
-          revealBox.current.getCenter(markPos.current);
-          markPos.current.y = revealBox.current.min.y;
-
-          markPos.current.x += REVEAL_SHIFT[0];
-          markPos.current.y += REVEAL_SHIFT[1];
-          markPos.current.z += REVEAL_SHIFT[2];
-
-          // Distance solved from the panel's own footprint so the shot frames
-          // the underside whatever size the chassis is.
-          revealBox.current.getSize(revealSize.current);
-          const halfPanel =
-            (Math.max(revealSize.current.x, revealSize.current.z) * 0.5) / REVEAL_FILL;
-          const revealDist = halfPanel / Math.tan((REVEAL_FOV * DEG2RAD) / 2);
-
-          // Almost directly beneath the panel, looking up into it.
-          orbitDir(REVEAL_AZIMUTH, REVEAL_ELEVATION, revealDir.current);
-          revealPos.current
-            .copy(markPos.current)
-            .addScaledVector(revealDir.current, revealDist);
-
-          // Smoothstep so the pull-back accelerates out of the mark rather
-          // than starting at full speed.
-          const e = reveal.current * reveal.current * (3 - 2 * reveal.current);
-          target.current.lerpVectors(markPos.current, target.current, e);
-          desired.current.lerpVectors(revealPos.current, desired.current, e);
-          revealFov.current = REVEAL_FOV + (frame.fov - REVEAL_FOV) * e;
-        }
+      if (revealPinned.current) {
+        // Smoothstep so the pull-back accelerates out of the mark rather than
+        // starting at full speed.
+        const e = reveal.current * reveal.current * (3 - 2 * reveal.current);
+        target.current.lerpVectors(markPos.current, target.current, e);
+        desired.current.lerpVectors(revealPos.current, desired.current, e);
+        revealFov.current = REVEAL_FOV + (frame.fov - REVEAL_FOV) * e;
       }
     }
 
@@ -211,6 +251,23 @@ export function CameraRig() {
       tgtSpring.current = new SpringVec3(target.current);
       fovSpring.current = new SpringScalar(frame.fov);
       camera.position.copy(desired.current);
+    }
+
+    // Coming back from the lab (or from debug), the springs still hold the pose
+    // from before the hand-over, while the camera is wherever the lab left it.
+    // Stepping from those stale values copies the old position straight onto
+    // the camera on the very first frame back — the same cut as the entry, just
+    // in the other direction. Re-seeding from the live camera means the spring
+    // travels *from* the lab pose and the return is as flown as the arrival.
+    if (parked.current) {
+      parked.current = false;
+      posSpring.current.set(camera.position);
+      resume.current
+        .set(0, 0, -1)
+        .applyQuaternion(camera.quaternion)
+        .multiplyScalar(camera.position.distanceTo(target.current))
+        .add(camera.position);
+      tgtSpring.current!.set(resume.current);
     }
 
     const omega = 7;
@@ -227,7 +284,9 @@ export function CameraRig() {
     // nearly half a metre — deriving `near` from the latter put the near plane
     // in front of the subject and culled the entire robot, which is why the
     // engraving never appeared.
-    const actualDist = posSpring.current.value.distanceTo(tgtSpring.current!.value);
+    const actualDist = posSpring.current.value.distanceTo(
+      tgtSpring.current!.value,
+    );
     cam.near = Math.max(0.005, actualDist - sphere.current.radius * 2.5);
     cam.far = actualDist + sphere.current.radius * 8;
     cam.updateProjectionMatrix();

@@ -32,11 +32,24 @@ export function Thermal() {
     offset: ["start end", "end start"],
   });
 
+  const labActive = useApp((s) => s.labActive);
+
   useMotionValueEvent(scrollYProgress, "change", (p) => {
-    // Ramp up over the first third, hold, ramp down over the last third.
-    const v = p < 0.33 ? p / 0.33 : p > 0.72 ? Math.max(0, (1 - p) / 0.28) : 1;
-    setThermal(Math.min(1, Math.max(0, v)));
+    // The lab claims the screen at 60% intersection, which lands around p≈0.85
+    // — so a fade that only finished at p=1 still had the robot half in false
+    // colour while the lab console was fading in. The camera has to be back to
+    // visible light *before* the lab arrives, not while it is arriving, so the
+    // ramp down now completes with room to spare.
+    const v = p < 0.33 ? p / 0.33 : p > 0.60 ? Math.max(0, (0.80 - p) / 0.20) : 1;
+    setThermal(labActive ? 0 : Math.min(1, Math.max(0, v)));
   });
+
+  // Hard guarantee, independent of the ramp above: the lab is never viewed
+  // through the IR camera. Scroll events stop firing once a snap settles, so
+  // without this a fast snap could leave the pass part-way up.
+  useEffect(() => {
+    if (labActive) setThermal(0);
+  }, [labActive, setThermal]);
 
   useEffect(() => () => setThermal(0), [setThermal]);
 
