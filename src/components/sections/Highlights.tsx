@@ -11,7 +11,11 @@ import { HIGHLIGHTS } from "@/lib/content";
  */
 export function Highlights() {
   return (
-    <section id="highlights" className="relative z-10 w-full px-6 py-28 md:px-12">
+    <section
+      id="highlights"
+      data-snap
+      className="relative z-10 w-full px-6 py-28 md:px-12"
+    >
       <SectionHeading
         index="08"
         eyebrow="Technical Highlights"

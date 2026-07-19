@@ -88,7 +88,10 @@ export function Lighting() {
         intensity={2.3 * boost}
         color="#fff2e2"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        /* 1024, not 2048. The frustum is only 1.6 m across, so this still
+           resolves ~1.5 mm per texel on a 0.35 m robot — visually identical
+           here, at a quarter of the shadow-pass fill cost every frame. */
+        shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0003}
         shadow-normalBias={0.004}
       >

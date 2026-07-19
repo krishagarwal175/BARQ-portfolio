@@ -11,11 +11,13 @@ const accentDot = { cyan: "bg-cyan", emerald: "bg-emerald", pink: "bg-pink" };
 /**
  * Shared eyebrow + title header used across the content sections.
  *
- * Backed by glass by default. These headings sit directly on the ambient
- * field, and the field is at its brightest — near-saturated orange — through
- * the middle of the page, so unbacked white type had almost no contrast to
- * work against. The panel gives the words a ground without boxing them in:
- * it hugs the content rather than filling the column.
+ * Centred and unboxed by default. The glass panel existed only to give the
+ * type contrast against the live ember field, which is at its brightest
+ * through the middle of the page. In the reference half that ground is now
+ * solid, so the box has nothing left to do — and a box drawn around a centred
+ * heading reads as a stray card rather than a section title.
+ *
+ * `panel` is kept for the few headings that still sit over the live scene.
  */
 export function SectionHeading({
   index,
@@ -24,7 +26,8 @@ export function SectionHeading({
   sub,
   accent = "cyan",
   className,
-  panel = true,
+  panel = false,
+  align = "center",
 }: {
   index: string;
   eyebrow: string;
@@ -32,14 +35,16 @@ export function SectionHeading({
   sub?: string;
   accent?: Accent;
   className?: string;
-  /** Off where the heading already sits on its own backing. */
+  /** On only where the heading sits over the live scene and needs contrast. */
   panel?: boolean;
+  align?: "left" | "center";
 }) {
   return (
     <div
       className={cn(
-        "max-w-2xl",
-        panel && "glass glass-sm w-fit p-6 md:p-8",
+        "max-w-[clamp(30rem,44vw,52rem)]",
+        align === "center" && "mx-auto text-center",
+        panel && "glass glass-sm p-6 md:p-8 lg:p-10",
         className,
       )}
     >
@@ -48,7 +53,10 @@ export function SectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-15% 0px" }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-4 flex items-center gap-2.5 text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-text-faint"
+        className={cn(
+          "mb-4 flex items-center gap-2.5 text-[clamp(0.78rem,0.62vw,0.95rem)] font-semibold uppercase tracking-[0.14em] text-text-faint",
+          align === "center" && "justify-center",
+        )}
       >
         {/* Colour is carried by a mark, not the type — the ember field is the
             only saturated thing on the page. */}
@@ -60,7 +68,7 @@ export function SectionHeading({
       {typeof title === "string" ? (
         <SplitText
           delay={0.05}
-          className="font-display text-4xl font-medium leading-[1.08] tracking-[-0.025em] text-text md:text-[2.6rem]"
+          className="font-display text-[clamp(2rem,2.7vw,3.3rem)] font-medium leading-[1.08] tracking-[-0.025em] text-text"
         >
           {title}
         </SplitText>
@@ -70,7 +78,7 @@ export function SectionHeading({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={VIEW}
           transition={{ ...T.base, delay: 0.05 }}
-          className="font-display text-4xl font-medium leading-[1.08] tracking-[-0.025em] text-text md:text-[2.6rem]"
+          className="font-display text-[clamp(2rem,2.7vw,3.3rem)] font-medium leading-[1.08] tracking-[-0.025em] text-text"
         >
           {title}
         </motion.h2>
@@ -81,7 +89,10 @@ export function SectionHeading({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-15% 0px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
-          className="mt-5 max-w-xl text-balance text-[1.02rem] font-light leading-[1.55] text-text-dim"
+          className={cn(
+            "mt-5 max-w-[46ch] text-balance text-[clamp(1rem,0.95vw,1.28rem)] font-light leading-[1.6] text-text-dim",
+            align === "center" && "mx-auto",
+          )}
         >
           {sub}
         </motion.p>

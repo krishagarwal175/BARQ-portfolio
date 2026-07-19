@@ -105,21 +105,25 @@ class ThermalImpl extends Effect {
   }
 }
 
-export const ThermalEffect = forwardRef<ThermalImpl, { amount: number }>(
-  function ThermalEffect({ amount }, ref) {
+export const ThermalEffect = forwardRef<ThermalImpl, Record<string, never>>(
+  function ThermalEffect(_props, ref) {
     const { camera, size } = useThree();
     const effect = useMemo(() => new ThermalImpl(), []);
     const world = useRef(new Vector3());
 
     useFrame((_, delta) => {
       const u = effect.uniforms;
-      u.get("uAmount")!.value = amount;
+      // Read from the store here rather than through a hook: this value
+      // changes every scroll tick, and subscribing would re-render the whole
+      // effect chain each time.
+      const { thermal, robotGroup } = useApp.getState();
+      u.get("uAmount")!.value = thermal;
       u.get("uTime")!.value = (u.get("uTime")!.value as number) + Math.min(delta, 0.05);
       u.get("uAspect")!.value = size.width / size.height;
 
       // Project the chassis to screen space so the hot core tracks the body
       // as the camera orbits.
-      const group = useApp.getState().robotGroup;
+      const group = robotGroup;
       if (group) {
         group.getWorldPosition(world.current);
         // Lift to roughly chassis height — the group origin sits at the feet.

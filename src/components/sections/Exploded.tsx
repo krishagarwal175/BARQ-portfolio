@@ -55,8 +55,10 @@ export function Exploded() {
               index="04"
               eyebrow="Teardown"
               accent="pink"
-              title={<>Exploded.</>}
+              title="The Split."
               sub="Scroll to pull BARQ apart, component by component. Hover any part for its engineering spec."
+              panel
+              align="left"
               className="pointer-events-none max-w-sm"
             />
 

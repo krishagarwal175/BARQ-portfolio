@@ -5,6 +5,9 @@ import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Nav } from "@/components/layout/Nav";
 import { AudioController } from "@/components/layout/AudioController";
 import { ThemeController } from "@/components/layout/ThemeController";
+import { GlassBudget } from "@/components/layout/GlassBudget";
+import { OrbitDrag } from "@/components/layout/OrbitDrag";
+import { OrbitHint } from "@/components/ui/OrbitHint";
 import { Cursor } from "@/components/ui/Cursor";
 import { Grain } from "@/components/ui/Grain";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
@@ -12,6 +15,7 @@ import { Boot } from "@/components/sections/Boot";
 import { Hero } from "@/components/sections/Hero";
 import { FeatureSection } from "@/components/sections/FeatureSection";
 import { Thermal } from "@/components/sections/Thermal";
+import { Reference } from "@/components/sections/Reference";
 import { Exploded } from "@/components/sections/Exploded";
 import { Lab } from "@/components/sections/Lab";
 import { Pipeline } from "@/components/sections/Pipeline";
@@ -42,6 +46,9 @@ export function Experience() {
       </div>
 
       <ThemeController />
+      <GlassBudget />
+      <OrbitDrag />
+      <OrbitHint />
       <Grain />
       <Cursor />
       <ScrollProgress />
@@ -115,24 +122,28 @@ export function Experience() {
         <Exploded />
         <Thermal />
         <Lab />
-        <Pipeline />
-        <Highlights />
+        {/* From here down the page is documentation, not a 3D narrative — it
+            gets a floor, and the canvas behind it stops rendering. */}
+        <Reference>
+          <Pipeline />
+          <Highlights />
 
-        <Marquee
-          items={[
-            "HW-290 IMU",
-            "4S LiPo · 6400 mAh",
-            "YDLIDAR G2",
-            "Fusion 360",
-            "ROS 2",
-            "Built end to end",
-          ]}
-        />
+          <Marquee
+            items={[
+              "HW-290 IMU",
+              "4S LiPo · 6400 mAh",
+              "YDLIDAR G2",
+              "Fusion 360",
+              "ROS 2",
+              "Built end to end",
+            ]}
+          />
 
-        <Hardware />
-        <Software />
-        <Capabilities />
-        <Footer />
+          <Hardware />
+          <Software />
+          <Capabilities />
+          <Footer />
+        </Reference>
       </main>
     </SmoothScroll>
   );

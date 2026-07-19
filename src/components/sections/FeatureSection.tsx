@@ -60,7 +60,7 @@ export function FeatureSection({
         viewport={VIEW}
         transition={T.base}
         className={cn(
-          "feature-col pointer-events-auto relative flex h-full w-[min(34rem,42vw)] flex-col justify-between px-8 py-24 md:px-14 md:py-28",
+          "feature-col pointer-events-auto relative flex h-full w-[clamp(24rem,36vw,42rem)] flex-col justify-between px-8 py-24 md:px-14 md:py-28",
           side === "right" && "ml-auto feature-col--right",
         )}
       >
@@ -81,7 +81,7 @@ export function FeatureSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={VIEW}
             transition={{ ...T.base, delay: 0.08 }}
-            className="mb-5 text-[0.82rem] font-bold uppercase tracking-[0.1em] text-text"
+            className="mb-5 text-[clamp(0.82rem,0.68vw,1rem)] font-bold uppercase tracking-[0.1em] text-text"
           >
             {eyebrow}
           </motion.p>
@@ -91,7 +91,7 @@ export function FeatureSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={VIEW}
             transition={{ ...T.base, delay: 0.14 }}
-            className="max-w-[34ch] text-[1.02rem] font-medium leading-[1.62] text-text-2"
+            className="max-w-[36ch] text-[clamp(1rem,0.98vw,1.32rem)] font-medium leading-[1.62] text-text-2"
           >
             {body}
           </motion.p>
@@ -109,7 +109,7 @@ export function FeatureSection({
           <SplitText
             as="h2"
             delay={0.18}
-            className="font-display text-[clamp(1.9rem,3.2vw,2.7rem)] font-extrabold uppercase leading-[1.06] tracking-[-0.01em] text-text"
+            className="font-display text-[clamp(2.1rem,3.4vw,3.9rem)] font-extrabold uppercase leading-[1.06] tracking-[-0.01em] text-text"
           >
             {statement}
           </SplitText>

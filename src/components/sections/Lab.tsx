@@ -99,13 +99,9 @@ export function Lab() {
       ref={ref}
       id="lab"
       data-snap
-      className="pointer-events-none relative flex h-[100svh] w-full flex-col justify-between"
+      className="pointer-events-none relative flex h-[100svh] w-full flex-col justify-end"
     >
       <PoseInfoPanel />
-
-      {/* No heading: the console and the live readout say what this is, and
-          a title here collided with the pose panel and the section wordmark. */}
-      <div />
 
       {/* Console sits at the foot of the screen. No sticky offset needed now
           that the section is exactly one viewport tall. */}

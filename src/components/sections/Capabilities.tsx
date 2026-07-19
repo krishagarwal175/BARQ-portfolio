@@ -11,7 +11,11 @@ import { CAPABILITIES_NOW, ROADMAP } from "@/lib/content";
  */
 export function Capabilities() {
   return (
-    <section id="capabilities" className="relative z-10 w-full px-6 py-28 md:px-12">
+    <section
+      id="capabilities"
+      data-snap
+      className="relative z-10 w-full px-6 py-28 md:px-12"
+    >
       <SectionHeading
         index="11"
         eyebrow="Capabilities & Roadmap"

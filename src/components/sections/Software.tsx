@@ -31,6 +31,7 @@ export function Software() {
   return (
     <section
       id="software"
+      data-snap
       className="relative z-10 w-full px-6 py-28 md:px-12"
     >
       <SectionHeading

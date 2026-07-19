@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import {
   FogExp2,
   Material,
   Mesh,
-  MeshBasicMaterial,
 } from "three";
 import { ENV_MAP } from "@/lib/environments";
 import { useApp } from "@/lib/store";
@@ -24,8 +23,29 @@ export function EnvController() {
   const env = useApp((s) => s.env);
   const robot = useApp((s) => s.robot);
 
-  const wireMat = useMemo(() => new MeshBasicMaterial({ color: "#9aa3b2", wireframe: true }), []);
-  const blueMat = useMemo(() => new MeshBasicMaterial({ color: "#37c6e6", wireframe: true }), []);
+  /**
+   * Wireframe clones of the robot's own materials, cached per source material.
+   *
+   * Blueprint originally swapped in a flat cyan MeshBasicMaterial, then a flat
+   * grey one — both unlit, so the robot went matte and lost every highlight.
+   * The teardown's ghost does something different and better: it keeps the
+   * PBR material and simply turns `wireframe` on, so the skeleton stays the
+   * machine's own dark graphite *and still takes light* — rim, reflections and
+   * all. This does the same, cloning once per unique source material so the
+   * originals are never mutated and switching back is lossless.
+   */
+  const wireCache = useRef(new Map<Material, Material>());
+  const wireframeOf = (src: Material): Material => {
+    const hit = wireCache.current.get(src);
+    if (hit) return hit;
+    const clone = src.clone() as Material & { wireframe?: boolean };
+    clone.wireframe = true;
+    clone.transparent = true;
+    clone.opacity = 0.62;
+    clone.depthWrite = false;
+    wireCache.current.set(src, clone);
+    return clone;
+  };
 
   // Fog only — the background stays null so the ambient field behind the
   // transparent canvas shows through. Fog is tinted to the ember ground
@@ -47,11 +67,13 @@ export function EnvController() {
       if (!mesh.userData.originalMaterial) {
         mesh.userData.originalMaterial = mesh.material as Material;
       }
-      if (def.material === "wireframe") mesh.material = wireMat;
-      else if (def.material === "blueprint") mesh.material = blueMat;
-      else mesh.material = mesh.userData.originalMaterial as Material;
+      const original = mesh.userData.originalMaterial as Material;
+      mesh.material =
+        def.material === "wireframe" || def.material === "blueprint"
+          ? wireframeOf(original)
+          : original;
     });
-  }, [env, robot, wireMat, blueMat]);
+  }, [env, robot]);
 
   return null;
 }

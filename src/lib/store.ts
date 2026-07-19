@@ -79,6 +79,21 @@ interface AppState {
   thermal: number;
   setThermal: (v: number) => void;
 
+  /** Manual orbit offset, in radians, from hold-and-drag. */
+  orbitAz: number;
+  orbitEl: number;
+  /** True once the reader has actually orbited — retires the hint for good. */
+  hasOrbited: boolean;
+  nudgeOrbit: (dAz: number, dEl: number) => void;
+
+  /**
+   * False once the reader reaches the reference sections, which sit on a solid
+   * ground. The canvas is fully covered there, so it is hidden and its frame
+   * loop stopped — no reason to keep rendering a scene nobody can see.
+   */
+  sceneVisible: boolean;
+  setSceneVisible: (v: boolean) => void;
+
   /* Audio */
   muted: boolean;
   toggleMuted: () => void;
@@ -120,6 +135,25 @@ export const useApp = create<AppState>((set) => ({
   setGaitSpeed: (v) => set({ gaitSpeed: v }),
   env: "studio",
   setEnv: (e) => set({ env: e }),
+
+  orbitAz: 0,
+  orbitEl: 0,
+  hasOrbited: false,
+  nudgeOrbit: (dAz, dEl) =>
+    set((s) => {
+      const orbitAz = s.orbitAz + dAz;
+      return {
+        orbitAz,
+        // Clamped so the camera can never tip past the poles and flip.
+        orbitEl: Math.max(-0.55, Math.min(0.9, s.orbitEl + dEl)),
+        // Latched in the store rather than mirrored into component state —
+        // deriving it in an effect meant calling setState during render.
+        hasOrbited: s.hasOrbited || Math.abs(orbitAz) > 0.08,
+      };
+    }),
+
+  sceneVisible: true,
+  setSceneVisible: (v) => set({ sceneVisible: v }),
 
   thermal: 0,
   setThermal: (v) => set({ thermal: v }),

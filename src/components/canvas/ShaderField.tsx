@@ -1,9 +1,18 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { ScreenQuad } from "@react-three/drei";
-import { Color, ShaderMaterial, Vector2, Vector3 } from "three";
+import {
+  Color,
+  DataTexture,
+  LinearFilter,
+  RGBAFormat,
+  RepeatWrapping,
+  ShaderMaterial,
+  Vector2,
+  Vector3,
+} from "three";
 import { THEMES } from "@/lib/theme";
 import { useApp } from "@/lib/store";
 import { damp } from "@/lib/utils";
@@ -50,37 +59,25 @@ const FRAG = /* glsl */ `
   uniform vec3  uColor3;   // secondary ember
   uniform vec3  uGround;   // darkest base
   uniform float uIntensity;
+  uniform sampler2D uNoise;
 
-  // -- value noise + fbm ---------------------------------------------------
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-  }
-
+  // -- noise ---------------------------------------------------------------
+  // Sampled from a small tiling texture rather than computed. The procedural
+  // version cost four sin() per octave and ran on every pixel of a fullscreen
+  // quad every frame — at DPR 2 that is tens of millions of transcendentals a
+  // frame for a background that changes almost imperceptibly. Three texture
+  // fetches produce the same field for a fraction of the work.
   float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
-      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
-      u.y
-    );
+    // Divided by the texture size, so one unit of p is one texel — matching
+    // the integer lattice the procedural version walked. Sampling at any
+    // higher frequency packs a hundred-plus random texels across the screen
+    // and bilinear blending turns them into soft mottling: heavy visible
+    // grain instead of the broad, slow gradient this is meant to be.
+    return texture2D(uNoise, p * (1.0 / 256.0)).r;
   }
 
-  // Three octaves, and called exactly once per pixel. This shader covers the
-  // whole viewport every frame, so each extra octave costs four more sin()
-  // across ~1M pixels — five octaves with a domain warp (three fbm calls) ran
-  // at 13fps. One three-octave call is visually near-identical here because
-  // the blobs below carry the composition; the noise only modulates them.
   float fbm(vec2 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 3; i++) {
-      v += a * noise(p);
-      p *= 2.02;
-      a *= 0.5;
-    }
-    return v;
+    return noise(p) * 0.5 + noise(p * 2.02 + 11.3) * 0.25 + noise(p * 4.07 + 27.1) * 0.125;
   }
 
   // Soft radial falloff, aspect-corrected so blobs stay round.
@@ -117,12 +114,49 @@ const FRAG = /* glsl */ `
     col *= mix(0.42, 1.0, vig);
 
     // Fine grain — breaks up banding across these very wide gradients.
-    float g = hash(uv * uRes + fract(uTime)) - 0.5;
-    col += g * 0.022;
+    // One noise texel per screen pixel. Sampling at any coarser scale
+    // magnifies the 256px texture into soft mottled blotches — which reads as
+    // heavy grain rather than the fine dither this is for. The offset walks
+    // the texture so the pattern never sits still.
+    vec2 gUv = (uv * uRes + floor(uTime * 24.0) * 37.0) / 256.0;
+    float g = texture2D(uNoise, gUv).g - 0.5;
+    col += g * 0.006;
 
     gl_FragColor = vec4(col * uIntensity, 1.0);
   }
 `;
+
+/**
+ * A small tiling noise texture, built once. Bilinear filtering plus the three
+ * octaves the shader stacks on top make 256px plenty — the field is a soft
+ * gradient, not a detail map. Deterministic so it never differs between loads.
+ */
+function makeNoiseTexture(): DataTexture {
+  const size = 256;
+  const data = new Uint8Array(size * size * 4);
+  // mulberry32 — same generator the dust field uses, kept pure for SSR safety.
+  let seed = 0x9e3779b9;
+  const rand = () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = 0; i < size * size; i++) {
+    data[i * 4] = rand() * 255; // r — fbm octaves
+    data[i * 4 + 1] = rand() * 255; // g — grain
+    data[i * 4 + 2] = rand() * 255;
+    data[i * 4 + 3] = 255;
+  }
+  const tex = new DataTexture(data, size, size, RGBAFormat);
+  tex.wrapS = RepeatWrapping;
+  tex.wrapT = RepeatWrapping;
+  tex.minFilter = LinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
 
 export function ShaderField() {
   const { size } = useThree();
@@ -130,6 +164,8 @@ export function ShaderField() {
   const theme = THEMES[env];
 
   const mat = useRef<ShaderMaterial>(null);
+  const noise = useMemo(() => makeNoiseTexture(), []);
+  useEffect(() => () => noise.dispose(), [noise]);
 
   const uniforms = useMemo(
     () => ({
@@ -142,8 +178,9 @@ export function ShaderField() {
       // so a hand-written base has to be linear too or it reads far too light.
       uGround: { value: new Vector3(0.0077, 0.0018, 0.0012) },
       uIntensity: { value: 1 },
+      uNoise: { value: noise },
     }),
-    [],
+    [noise],
   );
 
   // Scratch colours, so switching environment never allocates in the loop.

@@ -40,7 +40,7 @@ export function CameraRig() {
 
   useFrame((state, delta) => {
     if (useApp.getState().labActive) return;
-    const { section, robotGroup, dodge, scrollVel } = useApp.getState();
+    const { section, robotGroup, dodge, scrollVel, orbitAz, orbitEl } = useApp.getState();
     if (!robotGroup) return;
 
     const dt = Math.min(delta, 0.05);
@@ -64,10 +64,12 @@ export function CameraRig() {
     orbit.current += dt * 0.075 * idle.current;
 
     // Pointer + breathe as orbit offsets so the subject stays centred.
+    // Manual orbit is added to the keyframe rather than replacing it, so the
+    // scripted framing still drives the shot and the drag is an offset from it.
     const az =
-      frame.azimuth + orbit.current + pointer.x * 0.16 + Math.sin(t * 0.3) * 0.02;
+      frame.azimuth + orbit.current + orbitAz + pointer.x * 0.16 + Math.sin(t * 0.3) * 0.02;
     const el = clamp(
-      frame.elevation + pointer.y * 0.1 + Math.cos(t * 0.24) * 0.015,
+      frame.elevation + orbitEl + pointer.y * 0.1 + Math.cos(t * 0.24) * 0.015,
       0.02,
       1.45,
     );

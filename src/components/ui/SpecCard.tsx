@@ -87,10 +87,10 @@ export function SpecCard({
         )}
       </div>
 
-      <h3 className="relative mt-2.5 font-display text-base font-semibold tracking-[-0.01em] text-text">
+      <h3 className="relative mt-2.5 font-display text-[clamp(1rem,0.95vw,1.25rem)] font-semibold tracking-[-0.01em] text-text">
         {title}
       </h3>
-      <p className="relative mt-2 text-sm font-light leading-relaxed text-text-dim">{body}</p>
+      <p className="relative mt-2 text-[clamp(0.875rem,0.8vw,1.05rem)] font-light leading-relaxed text-text-dim">{body}</p>
     </motion.div>
   );
 }

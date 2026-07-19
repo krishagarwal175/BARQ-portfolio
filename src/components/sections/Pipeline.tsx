@@ -12,7 +12,11 @@ import { cn } from "@/lib/utils";
  */
 export function Pipeline() {
   return (
-    <section id="pipeline" className="relative z-10 w-full px-6 py-28 md:px-12">
+    <section
+      id="pipeline"
+      data-snap
+      className="relative z-10 w-full px-6 py-28 md:px-12"
+    >
       <SectionHeading
         index="07"
         eyebrow="Engineering Pipeline"
@@ -21,7 +25,7 @@ export function Pipeline() {
         sub="The path every capability takes — modelled, described, simulated, then proven on the physical robot. Autonomy is the next stage, not a current claim."
       />
 
-      <div className="mx-auto mt-16 max-w-3xl">
+      <div className="mx-auto mt-16 w-fit max-w-full">
         <ol className="relative border-l border-line">
           {PIPELINE.map((step, i) => (
             <motion.li
@@ -46,7 +50,13 @@ export function Pipeline() {
                 )}
               </span>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {/* Title and note run on one line. Stacked, each step was a
+                  two-line block with the description trailing underneath and
+                  most of the row empty to its right; inline, the numbers and
+                  titles form a column the eye can scan and the note fills the
+                  space that was going to waste. */}
+              <div className="grid grid-cols-1 items-baseline gap-x-8 gap-y-1 md:grid-cols-[minmax(16rem,20rem)_minmax(18rem,26rem)]">
+                <div className="flex items-center gap-x-3">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-text-faint">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -63,8 +73,11 @@ export function Pipeline() {
                     Planned
                   </span>
                 )}
+                </div>
+                <p className="text-[clamp(0.9rem,0.85vw,1.05rem)] font-light leading-[1.6] text-text-dim">
+                  {step.note}
+                </p>
               </div>
-              <p className="mt-1 max-w-md text-sm leading-relaxed text-text-dim">{step.note}</p>
             </motion.li>
           ))}
         </ol>

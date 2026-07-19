@@ -131,6 +131,27 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: clip;
   cursor: none;
+  /* No text selection anywhere. This is a driven 3D experience, and a stray
+     drag across a heading otherwise leaves half the page highlighted — and
+     now that dragging orbits the robot, selection would fight the gesture. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Anything genuinely meant to be copied opts back in. */
+.selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* While an orbit drag is armed or running, the whole page reads as grabbable. */
+html[data-orbit="armed"],
+html[data-orbit="armed"] * {
+  cursor: grab !important;
+}
+html[data-orbit="dragging"],
+html[data-orbit="dragging"] * {
+  cursor: grabbing !important;
 }
 
 @media (pointer: coarse) {
@@ -190,6 +211,44 @@ body {
 /* Hairline utility */
 .hairline {
   box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Reference ground                                                  */
+/*                                                                    */
+/*  The documentation half of the page sits on this instead of the     */
+/*  live canvas. It is the same ember field the shader paints, rebuilt */
+/*  in CSS and pinned with background-attachment so it stays put while */
+/*  the content scrolls over it — the reader crosses from a 3D scene   */
+/*  into a document without the ground changing colour under them.     */
+/*  Flat black here made the whole tail of the page feel like a        */
+/*  different site.                                                    */
+/* ------------------------------------------------------------------ */
+.reference-ground {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(
+      120% 78% at 78% 4%,
+      color-mix(in srgb, var(--field-1) 62%, transparent) 0%,
+      color-mix(in srgb, var(--field-2) 48%, transparent) 30%,
+      transparent 68%
+    ),
+    radial-gradient(
+      90% 62% at 14% 96%,
+      color-mix(in srgb, var(--field-2) 46%, transparent) 0%,
+      transparent 62%
+    ),
+    linear-gradient(168deg, #2a0a04 0%, #1d0703 46%, #120503 100%);
+  background-attachment: fixed;
+}
+
+/* An empty strip that dissolves the live scene into the ground. Same fixed
+   background as the ground, so the gradient continues across the join with no
+   seam; the mask only affects this strip, never any content. */
+.reference-ground--intro {
+  height: 30svh;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 100%);
 }
 
 /* ------------------------------------------------------------------ */
@@ -409,11 +468,26 @@ body {
   background: var(--surface);
   backdrop-filter: blur(40px) saturate(140%) brightness(0.94);
   -webkit-backdrop-filter: blur(40px) saturate(140%) brightness(0.94);
+  /* Isolate each pane so the compositor can cache it rather than re-resolving
+     stacking context against the whole page every frame. */
+  contain: paint;
   border: 1px solid var(--border);
   border-radius: 26px;
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
     0 24px 60px -24px var(--shadow);
+}
+
+/* Off-screen panes drop the filter entirely.
+   backdrop-filter re-samples and re-blurs whatever sits behind the element on
+   every frame the backdrop changes — and the WebGL canvas behind these repaints
+   continuously, so every pane pays that cost forever, including the ~30 that
+   are nowhere near the viewport. Dropping the filter when a pane is off-screen
+   is invisible (nothing is looking at it) and removes almost all of it.
+   The fill stays, so nothing pops when it scrolls back in. */
+.glass[data-offscreen="true"] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Raised state for cards that respond to the pointer. */
